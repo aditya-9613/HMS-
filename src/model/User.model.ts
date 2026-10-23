@@ -1,5 +1,5 @@
 // User.model.ts
-import { Schema, model, Document, Model } from "mongoose";
+import { model, models, type Model, Schema, Document } from "mongoose";
 import bcrypt from 'bcrypt'
 
 export const USER_ROLES = [
@@ -107,12 +107,12 @@ const userSchema = new Schema<IUserDocument>(
 
 // Add after the schema definition, before the index and model lines
 userSchema.pre("save", async function () {
-    if (!this.isModified("password_hash")) return;
+    if (!this.isModified("password")) return;
     this.password = await bcrypt.hash(this.password, 10);
 });
 
 userSchema.methods.comparePassword = function (candidate: string) {
-    return bcrypt.compare(candidate, this.password_hash);
+    return bcrypt.compare(candidate, this.password);
 };
 
 // staff_id is unique only when it is set (Super Admin has none)
@@ -121,6 +121,6 @@ userSchema.index(
     { unique: true, partialFilterExpression: { staff_id: { $type: "string" } } }
 );
 
-const User: Model<IUserDocument> = model<IUserDocument>("User", userSchema);
+const User: Model<IUserDocument> = (models.User as Model<IUserDocument>) || model<IUserDocument>("User", userSchema);
 
 export default User;

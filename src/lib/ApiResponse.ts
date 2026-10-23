@@ -1,5 +1,19 @@
 import { NextResponse } from "next/server";
 
+type CookieOptions = {
+    httpOnly?: boolean;
+    secure?: boolean;
+    sameSite?: "lax" | "strict" | "none";
+    path?: string;
+    maxAge?: number;
+};
+
+type CookieItem = {
+    name: string;
+    value: string;
+    options?: CookieOptions;
+};
+
 export class ApiResponse<T> {
     statusCode: number;
     data: T;
@@ -14,7 +28,20 @@ export class ApiResponse<T> {
     }
 
     // Wraps this object in a NextResponse with the same status code
-    send() {
-        return NextResponse.json(this, { status: this.statusCode });
+    // and optionally sets cookies on it
+    send(cookies: CookieItem[] = []) {
+        const res = NextResponse.json(this, { status: this.statusCode });
+
+        for (const { name, value, options } of cookies) {
+            res.cookies.set(name, value, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "lax",
+                path: "/",
+                ...options,
+            });
+        }
+
+        return res;
     }
 }

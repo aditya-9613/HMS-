@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { connect } from '@/db/index'
 import { ApiError } from "./ApiError";
 
 type Handler = (
@@ -9,6 +10,7 @@ type Handler = (
 export function asyncHandler(handler: Handler): Handler {
   return async (request, context) => {
     try {
+      await connect()
       return await handler(request, context);
     } catch (error) {
       if (error instanceof ApiError) {

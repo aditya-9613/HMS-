@@ -13,7 +13,7 @@ export const createUserSchema = z.object({
 });
 
 export const loginSchema = z.object({
-    staff_id: z.string().trim().min(1, "Staff ID is required"),
+    email: z.string().trim().min(1, "Email or Staff ID is required"),
     password: z.string().min(1, "Password is required"),
 });
 

@@ -3,7 +3,8 @@ import { verifyToken } from "@/lib/auth";
 
 // Routes that don't need a token
 const PUBLIC_PATHS = [
-    "/api/user/createUser"
+    "/api/user/createUser",
+    "/api/auth/login"
 ]
 
 export async function proxy(req: NextRequest) {

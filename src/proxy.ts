@@ -14,7 +14,7 @@ export async function proxy(req: NextRequest) {
         return NextResponse.next();
     }
 
-    const token = req.cookies.get("token")?.value;
+    const token = req.cookies.get("token")?.value || req.headers.get("Authorization")?.replace("Bearer ", "")
 
     if (!token) {
         return NextResponse.json(
@@ -51,5 +51,7 @@ export async function proxy(req: NextRequest) {
 
 // Only run on API routes
 export const config = {
-    matcher: ["/api/:path*"],
+    matcher: [
+        "/api/user/viewUser"
+    ],
 };

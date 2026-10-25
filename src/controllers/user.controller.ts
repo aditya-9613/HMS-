@@ -3,7 +3,7 @@ import { createUserSchema, loginSchema } from '@/validation/user.validation'
 import { ApiError } from '@/lib/ApiError'
 import { ApiResponse } from '@/lib/ApiResponse'
 import { asyncHandler } from '@/lib/asyncHandler'
-import { signAccessToken, signRefreshToken } from "@/lib/auth";
+import { signAccessToken, signRefreshToken, verifyAccessToken } from "@/lib/auth";
 
 
 export const createUser = asyncHandler(async (req: Request) => {
@@ -86,4 +86,24 @@ export const loginUser = asyncHandler(async (req: Request) => {
             options: { maxAge: 60 * 60 * 24 * 7 }, // 7 days, match your JWT expiry
         },
     ])
+})
+
+export const getUser = asyncHandler(async (req: Request) => {
+    const token = req.headers.get("cookie")
+        ?.split(";")
+        .map((cookie) => cookie.trim())
+        .find((cookie) => cookie.startsWith("token="))
+        ?.slice("token=".length) || req.headers.get("Authorization")?.replace("Bearer ", "")
+
+    if (!token) {
+        throw new ApiError(401, "Authentication required")
+    }
+
+    const verifyToken = await verifyAccessToken(token)
+
+    if (!verifyToken?.id) {
+        throw new ApiError(401, "Token Expired")
+    }
+
+    return new ApiResponse(200, {}, 'user details').send()
 })

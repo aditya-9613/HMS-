@@ -64,13 +64,11 @@ export default function LoginPage() {
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("refreshToken", data.refreshToken);
       localStorage.setItem("role", data.role);
-      let renderRoute: any = ''
+      const ADMIN_ROLES = ["Admin", "Super Admin", "Accountant"];
 
-      if (data.role === 'Admin' || 'Super Admin' || 'Accountant') {
-        renderRoute = '/admin/dashboard'
-      } else if (data.role === 'Doctors') {
-        renderRoute = '/staff/dashboard'
-      }
+      const renderRoute = ADMIN_ROLES.includes(data.role)
+        ? "/admin/dashboard"
+        : "/staff/dashboard";
 
       router.replace(renderRoute);
     } catch {

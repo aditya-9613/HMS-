@@ -47,6 +47,7 @@ export async function POST(req: NextRequest) {
         const response = NextResponse.json({
             success: true,
             message: "Access token refreshed successfully",
+            data: { accessToken },
         });
 
         response.cookies.set("accessToken", accessToken, {

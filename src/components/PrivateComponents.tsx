@@ -2,11 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 import { Lock, AlertCircle } from "lucide-react";
 
-const VALIDATE_URL = "/api/auth/me"; // GET, returns 401 when the access token has expired
+const VALIDATE_URL = "/api/user/viewUser"; // GET, returns 401 when the access token has expired
 const REFRESH_URL = "/api/auth/refresh"; // POST { refreshToken }, returns { data: { accessToken } }
-const POLL_MS = 10000;
+const POLL_MS = 10 * 60 * 1000; // 10 minutes
 
 type ModalState = "hidden" | "reauth" | "loading" | "failed";
 
@@ -40,15 +41,17 @@ export default function PrivateComponents({
       }
 
       try {
-        const res = await fetch(VALIDATE_URL, {
+        const res = await axios.get(VALIDATE_URL, {
           headers: { Authorization: `Bearer ${accessToken}` },
-          credentials: "include",
+          withCredentials: true,
+          validateStatus: () => true, // don't throw on 401, we handle it below
         });
+
         if (!isMounted.current) return;
 
         if (res.status === 401) {
           setModalState((s) => (s === "hidden" ? "reauth" : s));
-        } else if (res.ok) {
+        } else if (res.status >= 200 && res.status < 300) {
           setModalState((s) => (s === "reauth" ? "hidden" : s));
         }
       } catch {
@@ -78,27 +81,22 @@ export default function PrivateComponents({
     const refreshToken = localStorage.getItem("refreshToken");
 
     try {
-      const res = await fetch(REFRESH_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${refreshToken}`,
-        },
-        credentials: "include",
-        body: JSON.stringify({ refreshToken, type: type?.toLowerCase() }),
-      });
+      const res = await axios.post(
+        REFRESH_URL,
+        {
+          headers: { Authorization: `Bearer ${refreshToken}` },
+          withCredentials: true,
+          validateStatus: () => true, // handle status codes manually
+        }
+      );
 
-      if (res.ok) {
-        const json = await res.json();
-        const newAccess = json?.data?.accessToken;
+      if (res.status >= 200 && res.status < 300) {
+        const newAccess = res.data?.data?.accessToken;
         if (!newAccess) {
           setModalState("reauth");
           return;
         }
         localStorage.setItem("accessToken", newAccess);
-        if (json?.data?.refreshToken) {
-          localStorage.setItem("refreshToken", json.data.refreshToken);
-        }
         setModalState("hidden");
       } else if (res.status === 401) {
         setModalState("failed");

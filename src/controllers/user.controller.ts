@@ -107,3 +107,34 @@ export const getUser = asyncHandler(async (req: Request) => {
 
     return new ApiResponse(200, {}, 'user details').send()
 })
+
+export const logoutUser = asyncHandler(async (req: Request) => {
+    const token =
+        req.headers
+            .get("cookie")
+            ?.split(";")
+            .map((cookie) => cookie.trim())
+            .find((cookie) => cookie.startsWith("accessToken="))
+            ?.slice("accessToken=".length) ||
+        req.headers.get("Authorization")?.replace(/^Bearer\s+/i, "");
+
+    if (!token) {
+        throw new ApiError(401, "Authentication required")
+    }
+
+    const verifyToken = await verifyAccessToken(token)
+
+    const findUser = await User.findByIdAndUpdate(
+        verifyToken?.id,
+        {
+            logged_in: false
+        },
+        { new: true }
+    );
+
+    if ((findUser?.logged_in)) {
+        throw new ApiError(500, 'User Logged Out Failure')
+    }
+
+    return new ApiResponse(200, {}, 'User Logged Out Successfully ').send()
+})

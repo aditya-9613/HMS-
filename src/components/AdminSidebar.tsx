@@ -6,25 +6,29 @@ import logo from "@/Images/logo.png";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  LayoutDashboard,
-  Users,
-  FileText,
-  UserCog,
-  Pill,
-  Boxes,
-  ShieldCheck,
-  Wallet,
-  CalendarDays,
-  ClipboardList,
-  Settings,
-  ChevronDown,
-  LogOut,
-  type LucideIcon,
+  LayoutDashboard, Users, CalendarDays, FileText, UserCog, Pill, Boxes,
+  ShieldCheck, Wallet, ClipboardList, FileSignature, ShoppingCart, Banknote,
+  KeyRound, History, UserPlus, Eye, Pencil, BedDouble, LogIn, LogOut,
+  CalendarPlus, Stethoscope, CalendarClock, CalendarX, CalendarCheck,
+  ArrowRightLeft, FilePlus, Printer, PackageCheck, FlaskConical, Upload,
+  LayoutTemplate, FileCog, UserMinus, Landmark, BadgeCheck, PackagePlus,
+  Package, HandHelping, ClipboardCheck, AlertTriangle, Wrench, Warehouse,
+  Truck, Store, Receipt, CreditCard, Building2, FileWarning, HandCoins,
+  ReceiptText, XCircle, TrendingDown, ListOrdered, ArrowLeftRight, BarChart3,
+  Settings2, Calculator, Send, RefreshCw, Clock, Timer, UserCheck, Repeat,
+  Lock, ScrollText, Filter, ChevronDown
 } from "lucide-react";
 
-const HOME_HREF = "#";
+import type { LucideIcon } from "lucide-react";
+import axios from "axios";
 
-type SubItem = { label: string; href: string };
+type SubItem = {
+  label: string;
+  href: string;
+  icon?: LucideIcon;
+};
+
+const HOME_HREF = "#";
 
 type NavItem = {
   label: string;
@@ -35,26 +39,19 @@ type NavItem = {
 
 // Add or remove entries here, the sidebar renders whatever is in this array.
 const navItems: NavItem[] = [
-  { label: "Dashboard", href: "#", icon: LayoutDashboard },
-  {
-    label: "Admin",
-    href: "#",
-    icon: Settings,
-    children: [
-      { label: 'Create User', href: "#" },
-      { label: 'Update User', href: "#" },
-      { label: 'View User', href: "#" }
-    ]
-  },
+  { label: "Dashboards", href: "#", icon: LayoutDashboard },
   {
     label: "Patients",
     href: "#",
     icon: Users,
     children: [
-      { label: "All Patients", href: "#" },
-      { label: "Register Patient", href: "#" },
-      { label: "IPD Patient", href: "#" },
-
+      { label: "New Patient", href: "#", icon: UserPlus },
+      { label: "View Patient", href: "#", icon: Eye },
+      { label: "Edit Patient", href: "#", icon: Pencil },
+      { label: "Patient History", href: "#", icon: History },
+      { label: "IPD Patients", href: "#", icon: BedDouble },
+      { label: "Admit Patient", href: "#", icon: LogIn },
+      { label: "Discharge Patient", href: "#", icon: LogOut },
     ],
   },
   {
@@ -62,43 +59,173 @@ const navItems: NavItem[] = [
     href: "#",
     icon: CalendarDays,
     children: [
-      { label: "All Appointments", href: "#" },
-      { label: "Schedule", href: "#" },
+      { label: "Book Appointment", href: "#", icon: CalendarPlus },
+      { label: "Assign Doctor", href: "#", icon: Stethoscope },
+      { label: "View Appointment", href: "#", icon: Eye },
+      { label: "Reschedule Appointment", href: "#", icon: CalendarClock },
+      { label: "Cancel Appointment", href: "#", icon: CalendarX },
+      { label: "Mark No Show / Completed", href: "#", icon: CalendarCheck },
+      { label: "View IPD Status", href: "#", icon: BedDouble },
+      { label: "Transfer IPD", href: "#", icon: ArrowRightLeft },
     ],
   },
-  { label: "Medical Reports", href: "#", icon: FileText },
+  {
+    label: "Prescriptions",
+    href: "#",
+    icon: FileSignature,
+    children: [
+      { label: "Create Prescription", href: "#", icon: FilePlus },
+      { label: "View Prescription", href: "#", icon: Eye },
+      { label: "Print Prescription", href: "#", icon: Printer },
+      { label: "Dispense Status", href: "#", icon: PackageCheck },
+    ],
+  },
+  {
+    label: "Medical Reports",
+    href: "#",
+    icon: FileText,
+    children: [
+      { label: "Assign Test", href: "#", icon: FlaskConical },
+      { label: "Create Report", href: "#", icon: FilePlus },
+      { label: "View Report", href: "#", icon: Eye },
+      { label: "Edit Report", href: "#", icon: Pencil },
+      { label: "Upload Report Images", href: "#", icon: Upload },
+      { label: "Create Report Template", href: "#", icon: LayoutTemplate },
+      { label: "View / Edit Report Templates", href: "#", icon: FileCog },
+    ],
+  },
   {
     label: "Staff",
     href: "#",
     icon: UserCog,
     children: [
-      { label: "All Staff", href: "#" },
-      { label: "Add Staff", href: "#" },
-      { label: "Shifts", href: "#" },
+      { label: "Add Staff", href: "#", icon: UserPlus },
+      { label: "View Staff", href: "#", icon: Users },
+      { label: "Edit Staff", href: "#", icon: Pencil },
+      { label: "Resign / Terminate Staff", href: "#", icon: UserMinus },
+      { label: "Add Bank Account", href: "#", icon: Landmark },
+      { label: "Verify Bank Account", href: "#", icon: BadgeCheck },
     ],
   },
-  { label: "Pharmacy", href: "#", icon: Pill },
+  {
+    label: "Pharmacy",
+    href: "#",
+    icon: Pill,
+    children: [
+      { label: "Add Medicine", href: "#", icon: Pill },
+      { label: "View / Edit Medicines", href: "#", icon: Pencil },
+      { label: "Create Stocks", href: "#", icon: PackagePlus },
+      { label: "View Stocks", href: "#", icon: Package },
+      { label: "Dispense Medicine", href: "#", icon: HandHelping },
+      { label: "View Dispense", href: "#", icon: ClipboardCheck },
+      { label: "Expiry & Low Stock Report", href: "#", icon: AlertTriangle },
+    ],
+  },
   {
     label: "Inventory",
     href: "#",
     icon: Boxes,
     children: [
-      { label: "Medicines", href: "#" },
-      { label: "Equipment", href: "#" },
+      { label: "Add Item", href: "#", icon: PackagePlus },
+      { label: "View / Edit Items", href: "#", icon: Package },
+      { label: "Equipments", href: "#", icon: Wrench },
+      { label: "Add Stock", href: "#", icon: Warehouse },
+      { label: "View Stock", href: "#", icon: Boxes },
+      { label: "Add Supplier", href: "#", icon: Truck },
+      { label: "View / Edit Suppliers", href: "#", icon: Store },
     ],
   },
-  { label: "Insurance", href: "#", icon: ShieldCheck },
+  {
+    label: "Purchases",
+    href: "#",
+    icon: ShoppingCart,
+    children: [
+      { label: "Create Purchase", href: "#", icon: ShoppingCart },
+      { label: "View Purchases", href: "#", icon: Receipt },
+      { label: "Record Supplier Payment", href: "#", icon: CreditCard },
+    ],
+  },
+  {
+    label: "Insurance",
+    href: "#",
+    icon: ShieldCheck,
+    children: [
+      { label: "Add Provider", href: "#", icon: Building2 },
+      { label: "View / Edit Providers", href: "#", icon: Pencil },
+      { label: "Add Policy", href: "#", icon: FilePlus },
+      { label: "Accept / Reject Policy", href: "#", icon: BadgeCheck },
+      { label: "Raise Claim", href: "#", icon: FileWarning },
+      { label: "View Claims", href: "#", icon: Eye },
+      { label: "Claim Settlement", href: "#", icon: HandCoins },
+    ],
+  },
   {
     label: "Finance",
     href: "#",
     icon: Wallet,
     children: [
-      { label: "Revenue", href: "#" },
-      { label: "Expenses", href: "#" },
-      { label: "Bills", href: "#" },
+      { label: "Create OPD Bill", href: "#", icon: Receipt },
+      { label: "Create IPD Bill", href: "#", icon: ReceiptText },
+      { label: "View Bills", href: "#", icon: Eye },
+      { label: "Record Payment", href: "#", icon: CreditCard },
+      { label: "Cancel Bill", href: "#", icon: XCircle },
+      { label: "Add Expense", href: "#", icon: TrendingDown },
+      { label: "View Expenses", href: "#", icon: ListOrdered },
+      { label: "Transactions", href: "#", icon: ArrowLeftRight },
+      { label: "Doctor Earnings", href: "#", icon: Stethoscope },
+      { label: "Financial Reports", href: "#", icon: BarChart3 },
     ],
   },
-  { label: "Duties", href: "#", icon: ClipboardList },
+  {
+    label: "Payroll",
+    href: "#",
+    icon: Banknote,
+    children: [
+      { label: "Create Salary Structure", href: "#", icon: FilePlus },
+      { label: "View / Edit Salary Structures", href: "#", icon: Settings2 },
+      { label: "Prepare Payroll Run", href: "#", icon: Calculator },
+      { label: "Approve Payroll Run", href: "#", icon: BadgeCheck },
+      { label: "Initiate Payout", href: "#", icon: Send },
+      { label: "View Payslip", href: "#", icon: FileText },
+      { label: "Retry Failed Payouts", href: "#", icon: RefreshCw },
+      { label: "Payroll Reports", href: "#", icon: BarChart3 },
+    ],
+  },
+  {
+    label: "Duties",
+    href: "#",
+    icon: ClipboardList,
+    children: [
+      { label: "Create Shift", href: "#", icon: Clock },
+      { label: "View / Edit Shifts", href: "#", icon: Timer },
+      { label: "Duty Roster", href: "#", icon: CalendarDays },
+      { label: "Assign Duties", href: "#", icon: UserCheck },
+      { label: "Check Duties", href: "#", icon: ClipboardCheck },
+      { label: "Swap / Replace Duty", href: "#", icon: Repeat },
+      { label: "Check-in / Check-out", href: "#", icon: LogIn },
+    ],
+  },
+  {
+    label: "Users & Access",
+    href: "#",
+    icon: KeyRound,
+    children: [
+      { label: "Add User", href: "#", icon: UserPlus },
+      { label: "View Users", href: "#", icon: Users },
+      { label: "Assign Role", href: "#", icon: ShieldCheck },
+      { label: "Reset Password", href: "#", icon: KeyRound },
+      { label: "Lock / Suspend User", href: "#", icon: Lock },
+    ],
+  },
+  {
+    label: "Activity Logs",
+    href: "#",
+    icon: History,
+    children: [
+      { label: "View Logs", href: "#", icon: ScrollText },
+      { label: "Filter by User / Module / Date", href: "#", icon: Filter },
+    ],
+  },
 ];
 
 // Icon tile colours, cycled by position in navItems.
@@ -129,9 +256,18 @@ export default function AdminSidebar() {
       null
   );
 
-  const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    router.replace("/");
+  const handleLogout = async () => {
+    const res = await axios.put('/api/auth/logout', {
+      headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` },
+      withCredentials: true,
+      validateStatus: () => true
+    })
+    if (res.status === 200) {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem('role')
+      router.replace("/");
+    }
   };
 
   return (
@@ -223,6 +359,7 @@ export default function AdminSidebar() {
                     <div className="ml-[1.35rem] mt-1 space-y-0.5 border-l border-white/10 pl-4">
                       {item.children!.map((child) => {
                         const childActive = matches(child.href);
+                        const ChildIcon = child.icon;
                         return (
                           <Link
                             key={child.label}
@@ -232,12 +369,20 @@ export default function AdminSidebar() {
                               : "text-slate-400 hover:bg-white/[0.06] hover:text-white"
                               }`}
                           >
-                            <span
-                              className={`h-1.5 w-1.5 rounded-full transition-colors ${childActive
-                                ? "bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.9)]"
-                                : "bg-slate-600 group-hover:bg-slate-400"
-                                }`}
-                            />
+                            {ChildIcon ? (
+                              <ChildIcon
+                                size={15}
+                                className={`shrink-0 transition-colors ${childActive ? "text-sky-300" : "text-slate-500"
+                                  }`}
+                              />
+                            ) : (
+                              <span
+                                className={`h-1.5 w-1.5 shrink-0 rounded-full transition-colors ${childActive
+                                  ? "bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.9)]"
+                                  : "bg-slate-600"
+                                  }`}
+                              />
+                            )}
                             {child.label}
                           </Link>
                         );
